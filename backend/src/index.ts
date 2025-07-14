@@ -1,28 +1,33 @@
-const dotenv = require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-
+import dotenv from "dotenv";
+dotenv.config();
+import express from 'express';
+import mongoose from 'mongoose';
 
 const app = express();
 app.use(express.json());
 
-const {userRouter} = require("./routes/user");
-const {contentRouter} = require("./routes/content");
+import  userRouter  from './routes/user';
+// import  contentRouter  from './routes/content';
 
-app.use("/api/v1/user", userRouter);
-app.use("/api/v1/content", contentRouter);
 
-const mongoUrl = process.env.MOngo_Connection_String;
+app.use('/api/v1/user', userRouter);
+// app.use("/api/v1/content", contentRouter);
+
+const MONGO_URL = process.env.MONGO_STRING as string;  //since using ts
+
 
 async function connectToDatabase() {
-    try{
-        await mongoose.connect(mongoUrl).then(()=>{console.log("Connected to MongoDB")});
+    try {
+        if (!MONGO_URL) {
+            throw new Error("MONGO_STRING is not defined in environment variables.");
+        }
+        await mongoose.connect(MONGO_URL);
+        console.log("Connected to MongoDB");
+        app.listen(3000, () => console.log("Server running on port 3000"));
     }
-    catch(err){
-        console.log("Error connecting to MongoDb");
+    catch (err) {
+        console.log("Error connecting to MongoDb", err);
     }
-
-    app.listen(3000,()=>console.log("Serving running on port 3000"));
 }
 
 connectToDatabase();

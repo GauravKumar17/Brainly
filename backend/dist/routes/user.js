@@ -79,8 +79,13 @@ userRouter.post('/signin', ((req, res, next) => __awaiter(void 0, void 0, void 0
         }
         const verifypasword = yield bcrypt_1.default.compare(password, user.password);
         if (verifypasword) {
+            // Check if JWT_SECRET is defined in env or not(this is compulsory in ts)
+            if (!JWT_SECRET) {
+                console.error("JWT_SECRET is not defined in your environment.");
+                return res.status(500).json({ message: "Internal server error" });
+            }
             const token = jsonwebtoken_1.default.sign({
-                userId: user._id
+                userId: user._id.toString(),
             }, JWT_SECRET);
             return res.status(200).json({
                 message: "Signin successful",
@@ -97,8 +102,7 @@ userRouter.post('/signin', ((req, res, next) => __awaiter(void 0, void 0, void 0
         res.status(500).json({ message: "Internal server error", error: err });
     }
 })));
-//@ts-ignore
-userRouter.post('/contents', middleware_1.authMidleware, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+userRouter.post('/contents', middleware_1.authMiddleware, ((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const link = req.body.link;
         const title = req.body.title;
@@ -117,11 +121,9 @@ userRouter.post('/contents', middleware_1.authMidleware, (req, res, next) => __a
     catch (err) {
         res.status(500).json({ message: "Internal server error", error: err });
     }
-}));
-//@ts-ignore
-userRouter.get('/contents', middleware_1.authMidleware, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+})));
+userRouter.get('/contents', middleware_1.authMiddleware, ((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        //@ts-ignore
         const userId = req.userId;
         const contents = yield db_1.contentModel.find({
             userId: userId
@@ -133,12 +135,10 @@ userRouter.get('/contents', middleware_1.authMidleware, (req, res, next) => __aw
     catch (err) {
         res.status(500).json({ message: "Internal server error", error: err });
     }
-}));
-//@ts-ignore
-userRouter.delete('/contents', middleware_1.authMidleware, (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+})));
+userRouter.delete('/contents', middleware_1.authMiddleware, ((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const contentId = req.body.contentId;
-        //@ts-ignore
         const userId = req.userId;
         const content = yield db_1.contentModel.deleteMany({
             _id: contentId,
@@ -156,5 +156,5 @@ userRouter.delete('/contents', middleware_1.authMidleware, (req, res, next) => _
     catch (err) {
         res.status(500).json({ message: "Internal server error", error: err });
     }
-}));
+})));
 exports.default = userRouter;

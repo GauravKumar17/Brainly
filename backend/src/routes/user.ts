@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 import { userModel, tagsModel, contentModel, linksModel } from '../db';
 
-import { authMidleware } from './middleware';
+import { authMiddleware } from './middleware';
 const userRouter = express.Router();
 
 
@@ -90,9 +90,15 @@ userRouter.post('/signin', (async(req:Request,res:Response,next:NextFunction)=>{
         const verifypasword  = await bcrypt.compare(password,user.password);
 
         if(verifypasword){
+            // Check if JWT_SECRET is defined in env or not(this is compulsory in ts)
+            if (!JWT_SECRET) {
+                console.error("JWT_SECRET is not defined in your environment.");
+                return res.status(500).json({ message: "Internal server error" });
+            }
+
             const token = JWT.sign({
-                userId:user._id as string
-                },JWT_SECRET as string);
+                userId:user._id.toString(),
+                },JWT_SECRET);
 
             return res.status(200).json({
                 message:"Signin successful",
@@ -111,8 +117,8 @@ userRouter.post('/signin', (async(req:Request,res:Response,next:NextFunction)=>{
 
 })as RequestHandler);
 
-//@ts-ignore
-userRouter.post('/contents', authMidleware, async (req: Request, res: Response , next:NextFunction) => {
+
+userRouter.post('/contents', authMiddleware, (async (req: Request, res: Response , next:NextFunction) => {
 
     try{
         const link = req.body.link;
@@ -136,12 +142,12 @@ userRouter.post('/contents', authMidleware, async (req: Request, res: Response ,
         res.status(500).json({ message: "Internal server error", error: err });
     }
 
-});
+})as RequestHandler);
 
-//@ts-ignore
-userRouter.get('/contents', authMidleware, async (req: Request, res: Response , next:NextFunction) => {
+
+userRouter.get('/contents', authMiddleware, (async (req: Request, res: Response , next:NextFunction) => {
+    
     try{
-        //@ts-ignore
         const userId = req.userId;
         const contents = await contentModel.find({
             userId: userId
@@ -153,13 +159,13 @@ userRouter.get('/contents', authMidleware, async (req: Request, res: Response , 
     }catch(err){
         res.status(500).json({ message: "Internal server error", error: err }); 
     }
-});
+})as RequestHandler);
 
-//@ts-ignore
-userRouter.delete('/contents', authMidleware, async (req: Request, res: Response , next:NextFunction) => {
+
+userRouter.delete('/contents', authMiddleware,(async (req: Request, res: Response , next:NextFunction) => {
     try{
         const contentId = req.body.contentId;
-        //@ts-ignore
+        
         const userId = req.userId;
 
         const content = await contentModel.deleteMany({
@@ -180,7 +186,7 @@ userRouter.delete('/contents', authMidleware, async (req: Request, res: Response
     }catch(err){
         res.status(500).json({ message: "Internal server error", error: err });
     }
-});
+})as RequestHandler);
 
 
 

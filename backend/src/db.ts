@@ -4,7 +4,8 @@ const ObjectId = Schema.Types.ObjectId;
 interface IUser extends Document {
     username:string;
     password:string;
-    email:{type:string,unique:true}
+    email:{type:string,unique:true};
+    _id: Types.ObjectId;
 }
 
 interface ITags extends Document {
@@ -42,14 +43,14 @@ const ContentsSchema = new Schema<IContents>({
     link: { type: String, required: true },
     title: { type: String, required: true },
     type: { type: String, required: true },
-    tags: [{ type: ObjectId, ref: 'Tags' }],
-    userId: { type: ObjectId, ref: 'User', required: true }
+    tags: [{ type: ObjectId, ref: 'tags' }],
+    userId: { type: ObjectId, ref: 'user', required: true }
 })
 
 
 const LinksSchema = new Schema<ILinks>({
     hash: { type: String, required: true },
-    user: { type: ObjectId, ref: 'User', required: true }       
+    user: { type: ObjectId, ref: 'user', required: true }       
 })
 
 
